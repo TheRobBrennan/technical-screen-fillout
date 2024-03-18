@@ -2,7 +2,7 @@
 
 An example [Express.JS](https://expressjs.com) and [TypeScript](https://www.typescriptlang.org) application ready for deployment to [Vercel](https://vercel.com/).
 
-You can view the [DEMO](https://expressjs-vercel-starter.vercel.app) [Express.JS](https://expressjs.com) application hosted on [Vercel](https://vercel.com/) at [https://expressjs-vercel-starter.vercel.app](https://expressjs-vercel-starter.vercel.app)
+You can view the [DEMO](https://technical-screen-fillout.vercel.app) application hosted on [Vercel](https://vercel.com/) at [https://technical-screen-fillout.vercel.app](https://technical-screen-fillout.vercel.app)
 
 ## Getting started
 
@@ -26,7 +26,7 @@ Once you have the project dependencies installed, you can start the application 
 # Run the development script
 % npm run dev
 
-> expressjs-vercel-starter@0.0.0 dev
+> technical-screen-fillout@0.0.0 dev
 > nodemon ./src/server.ts
 
 [nodemon] 3.0.2
