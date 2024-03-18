@@ -51,9 +51,11 @@ In the above example, you can open your browser to [http://localhost:3000](http:
 │   └── index.ts
 ├── src
 │   ├── controllers
-│   │   ├── ping.ts
+│   │   ├── filloutController.ts
 │   ├── routes
-│   │   ├── ping.ts
+│   │   ├── filloutRoutes.ts
+│   ├── services
+│   │   ├── filloutService.ts
 │   └── server.ts
 ├── package.json
 ├── package-lock.json
@@ -109,7 +111,7 @@ type ResponseFiltersType = ResponseFilter[];
 - Responses should match the same shape as defined at [https://www.fillout.com/help/fillout-rest-api#d8b24260dddd4aaa955f85e54f4ddb4d](https://www.fillout.com/help/fillout-rest-api#d8b24260dddd4aaa955f85e54f4ddb4d) - Sjust filtering out the responses that don’t match the filters.
   - Note that this means you’ll need to make sure the pagination still works, in the response (i.e. the `totalResponses` and `pageCount` )
 
-#### REFERENCE: Example responses and input
+### REFERENCE: Example responses and input
 
 Example responses to a `formId`:
 
