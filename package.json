@@ -1,5 +1,5 @@
 {
-  "name": "expressjs-vercel-starter",
+  "name": "technical-screen-fillout",
   "version": "0.0.0",
   "scripts": {
     "test": "vitest",
@@ -13,10 +13,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/TheRobBrennan/expressjs-vercel-starter.git"
+    "url": "https://github.com/TheRobBrennan/technical-screen-fillout.git"
   },
   "bugs": {
-    "url": "https://github.com/TheRobBrennan/expressjs-vercel-starter/issues"
+    "url": "https://github.com/TheRobBrennan/technical-screen-fillout/issues"
   },
   "license": "MIT",
   "devDependencies": {
