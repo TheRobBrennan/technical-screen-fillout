@@ -51,9 +51,11 @@ In the above example, you can open your browser to [http://localhost:3000](http:
 │   └── index.ts
 ├── src
 │   ├── controllers
-│   │   ├── ping.ts
+│   │   ├── filloutController.ts
 │   ├── routes
-│   │   ├── ping.ts
+│   │   ├── filloutRoutes.ts
+│   ├── services
+│   │   ├── filloutService.ts
 │   └── server.ts
 ├── package.json
 ├── package-lock.json
