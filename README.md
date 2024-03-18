@@ -16,6 +16,9 @@ v20.11.1
 % npm -v
 10.2.4
 
+# Create and define environment variables in your own .env file
+% cp .env.example .env
+
 # Install dependencies
 % npm install
 ```
