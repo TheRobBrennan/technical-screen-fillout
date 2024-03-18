@@ -8,7 +8,7 @@ import Ping from './routes/ping';
 
 // Express server
 const server = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 // Logging, CORS, and other middleware
 server.use(morgan('dev'));
