@@ -4,7 +4,8 @@ import cors from 'cors';
 import morgan from 'morgan';
 
 // Route handlers
-import Ping from './routes/ping';
+// import Ping from './routes/ping';
+import filloutRoutes from './routes/filloutRoutes'; // Import the new route
 
 // Express server
 const server = express();
@@ -23,7 +24,7 @@ server.use(express.urlencoded({ extended: false }));
 // server.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
-server.use('/', Ping);
+server.use('/', filloutRoutes); // Per requirements - NO prefix for the route
 
 // Start the server
 server.listen(PORT, () =>
