@@ -18,7 +18,11 @@ export const fetchAndSaveFormResponses = (formId: string): Promise<any> => {
       response.on('end', () => {
         try {
           const formResponses = JSON.parse(data);
-          const filePath = path.join(__dirname, './', 'tmp', `data.json`);
+
+          // Determine the file path based on the environment
+          const basePath = process.env.VERCEL || process.env.NODE_ENV === 'production' ? '/tmp' : './src/services/tmp';
+          const filePath = path.join(basePath, `data-${formId}.json`);
+
           fs.writeFileSync(filePath, JSON.stringify(formResponses, null, 2), 'utf-8');
           resolve(formResponses);
         } catch (error) {
