@@ -29,7 +29,7 @@ export const getFilteredResponses = async (req: Request, res: Response): Promise
     await saveFormResponsesToFile(formId, responses);
 
     // DEBUG
-    if (filters) {
+    if (filters.length > 0) {
       console.log(`TODO: Apply filters to responses: ${JSON.stringify(filters, null, 2)}`);
     }
 
