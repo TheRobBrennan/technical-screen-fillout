@@ -11,6 +11,11 @@
     "dev": "nodemon ./src/server.ts",
     "vercel-build": "echo Done running vercel-build."
   },
+  "nodemonConfig": {
+    "ignore": [
+      "src/services/tmp/*"
+    ]
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/TheRobBrennan/technical-screen-fillout.git"
