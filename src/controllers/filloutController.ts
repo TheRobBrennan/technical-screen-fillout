@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { fetchAndSaveFormResponses } from '../services/filloutService'; // Assume you have this function implemented
+import { fetchFormResponses, saveFormResponsesToFile } from '../services/filloutService'; // Assume you have this function implemented
 
 // Redirect to filtered responses
 export const redirectToFilteredResponses = (_: Request, res: Response) => {
@@ -8,13 +8,34 @@ export const redirectToFilteredResponses = (_: Request, res: Response) => {
 };
 
 // Get filtered responses for a form
-export const getFilteredResponses = async (req: Request, res: Response) => {
+export const getFilteredResponses = async (req: Request, res: Response): Promise<void> => {
   const { formId } = req.params;
+
+  // Build the filters from the query parameters
+  let filters = [];
+  if (req.query?.filters) {
+    try {
+      filters = JSON.parse(req.query.filters as string);
+      // FUTURE: Validate parsed filters
+    } catch (error) {
+      console.error(error);
+      res.status(400).send('Invalid filters format.');
+    }
+  }
+
   try {
-    const responses = await fetchAndSaveFormResponses(formId);
+    // const responses = await fetchAndSaveFormResponses(formId);
+    const responses = await fetchFormResponses(formId);
+    await saveFormResponsesToFile(formId, responses);
+
+    // DEBUG
+    if (filters.length > 0) {
+      console.log(`TODO: Apply filters to responses: ${JSON.stringify(filters, null, 2)}`);
+    }
+
     res.json(responses);
   } catch (error) {
     console.error(error);
     res.status(500).send('An error occurred while fetching form responses.');
   }
-};
+}

@@ -1,68 +1,121 @@
-// src/controllers/filloutController.test.js
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
-import * as filloutService from '../services/filloutService';
 import { redirectToFilteredResponses, getFilteredResponses } from './filloutController';
+import * as filloutService from '../services/filloutService';
 
-// Define a custom mock interface that mirrors the needed Response methods
-interface MockResponse {
-  status: (code: number) => MockResponse;
-  send: (body?: any) => MockResponse;
-  json: (body: any) => MockResponse;
-  redirect: (statusOrUrl: number | string, url?: string) => MockResponse;
-}
+// Mock the service functions
+vi.mock('../services/filloutService', () => ({
+  fetchFormResponses: vi.fn(),
+  saveFormResponsesToFile: vi.fn()
+}));
 
-// Create a mock response object with method chaining supported
-const mockResponse = (): MockResponse => {
-  const res: MockResponse = {
-    status: vi.fn().mockReturnThis(),
-    send: vi.fn().mockReturnThis(),
-    json: vi.fn().mockReturnThis(),
-    redirect: vi.fn().mockReturnThis(),
-  };
-  return res;
-};
+// Mock Express Request and Response objects
+let mockRequest: Partial<Request>;
+let mockResponse: Partial<Response>;
 
-// Mocking the environment variable for form ID
-process.env.FILLOUT_FORM_ID = 'testFormId';
+describe('filloutController', () => {
+  let mockRequest: Partial<Request>;
+  let mockResponse: Partial<Response>;
+  let responseJson: unknown;
 
-describe('redirectToFilteredResponses', () => {
-  it('should redirect to the filtered responses page with the correct form ID', () => {
-    const res = mockResponse() as unknown as Response<any, Record<string, any>>; // Cast the mockResponse to Response<any, Record<string, any>> type
-    redirectToFilteredResponses({} as Request, res);
-    expect(res.redirect).toHaveBeenCalledWith('/testFormId/filteredResponses');
-  });
-});
-
-describe('getFilteredResponses', () => {
   beforeEach(() => {
-    // Reset all mocks to ensure a clean slate for each test
-    vi.restoreAllMocks();
+    responseJson = null;
+
+    mockRequest = {};
+    mockResponse = {
+      // @ts-ignore - We're mocking the redirect object
+      redirect: vi.fn(),
+      status: vi.fn().mockReturnThis(), // Chainable
+      send: vi.fn().mockReturnThis(), // Chainable
+      json: vi.fn().mockImplementation(result => {
+        responseJson = result;
+      })
+    };
   });
 
-  it('should return form responses successfully', async () => {
-    const res = mockResponse() as unknown as Response<any, Record<string, any>>; // Cast the mockResponse to Response<any, Record<string, any>> type
-    const req = { params: { formId: '123' } } as unknown as Request;
-
-    const mockResponses = [{ id: 1, response: 'Test Response' }];
-    // Mocking the service call to fetch and save form responses
-    vi.spyOn(filloutService, 'fetchAndSaveFormResponses').mockResolvedValue(mockResponses);
-
-    await getFilteredResponses(req, res);
-    expect(filloutService.fetchAndSaveFormResponses).toHaveBeenCalledWith('123');
-    expect(res.json).toHaveBeenCalledWith(mockResponses);
+  describe('redirectToFilteredResponses', () => {
+    it('redirects to the filteredResponses path', () => {
+      process.env.FILLOUT_FORM_ID = 'test-form-id';
+      redirectToFilteredResponses(mockRequest as Request, mockResponse as Response);
+      expect(mockResponse.redirect).toHaveBeenCalledWith(`/test-form-id/filteredResponses`);
+    });
   });
 
-  it('should handle errors when fetching form responses', async () => {
-    const res = mockResponse() as unknown as Response<any, Record<string, any>>; // Cast the mockResponse to Response<any, Record<string, any>> type
-    const req = { params: { formId: 'errorCase' } } as unknown as Request;
+  describe('getFilteredResponses', () => {
+    // This runs before each test, setting up the mocks fresh
+    beforeEach(() => {
+      // Reset all mocks to ensure clean state
+      vi.resetAllMocks();
 
-    const errorMessage = 'An error occurred';
-    // Mocking a rejection to simulate an error during service execution
-    vi.spyOn(filloutService, 'fetchAndSaveFormResponses').mockRejectedValue(new Error(errorMessage));
+      // Setup default mock implementations
+      vi.spyOn(filloutService, 'fetchFormResponses').mockResolvedValue(['response1', 'response2']);
+      vi.spyOn(filloutService, 'saveFormResponsesToFile').mockImplementation(() => { });
+      vi.spyOn(console, 'log').mockImplementation(() => { });
 
-    await getFilteredResponses(req, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.send).toHaveBeenCalledWith('An error occurred while fetching form responses.');
+      // Initialize mock request and response
+      mockRequest = { params: {}, query: {} };
+      mockResponse = {
+        json: vi.fn(),
+        status: vi.fn().mockReturnThis(),
+        send: vi.fn().mockReturnThis()
+      };
+    });
+
+    it('fetches and saves form responses successfully', async () => {
+      mockRequest.params = { formId: 'test-form' };
+      vi.spyOn(filloutService, 'fetchFormResponses').mockResolvedValue(['response1', 'response2']);
+      await getFilteredResponses(mockRequest as Request, mockResponse as Response);
+      expect(filloutService.fetchFormResponses).toHaveBeenCalledWith('test-form');
+      expect(filloutService.saveFormResponsesToFile).toHaveBeenCalledWith('test-form', ['response1', 'response2']);
+      expect(mockResponse.json).toHaveBeenCalledWith(['response1', 'response2']);
+    });
+
+    it('handles invalid filter format', async () => {
+      mockRequest = {
+        ...mockRequest,
+        query: { filters: 'not-a-valid-json' },
+        params: { formId: 'test-form' }
+      };
+      await getFilteredResponses(mockRequest as Request, mockResponse as Response);
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.send).toHaveBeenCalledWith('Invalid filters format.');
+    });
+
+    it('handles errors while fetching form responses', async () => {
+      mockRequest.params = { formId: 'test-form' };
+      vi.spyOn(filloutService, 'fetchFormResponses').mockRejectedValue(new Error('Network error'));
+      await getFilteredResponses(mockRequest as Request, mockResponse as Response);
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.send).toHaveBeenCalledWith('An error occurred while fetching form responses.');
+    });
+
+    it('logs filters when they are provided', async () => {
+      const mockFilters = [{ field: 'testField', operator: 'equals', value: 'testValue' }];
+      mockRequest.params = { formId: 'test-form' };
+      mockRequest.query = { filters: JSON.stringify(mockFilters) };
+      vi.spyOn(filloutService, 'fetchFormResponses').mockResolvedValue(['response1', 'response2']);
+
+      await getFilteredResponses(mockRequest as Request, mockResponse as Response);
+
+      expect(console.log).toHaveBeenCalledWith(`TODO: Apply filters to responses: ${JSON.stringify(mockFilters, null, 2)}`);
+      expect(filloutService.fetchFormResponses).toHaveBeenCalledWith('test-form');
+      expect(filloutService.saveFormResponsesToFile).toHaveBeenCalledWith('test-form', ['response1', 'response2']);
+      expect(mockResponse.json).toHaveBeenCalledWith(['response1', 'response2']);
+    });
+
+    it('does not log filters when they are not provided', async () => {
+      mockRequest.params = { formId: 'test-form' };
+      vi.spyOn(filloutService, 'fetchFormResponses').mockResolvedValue(['response1', 'response2']);
+
+      await getFilteredResponses(mockRequest as Request, mockResponse as Response);
+
+      expect(console.log).not.toHaveBeenCalledWith(expect.stringContaining('TODO: Apply filters to responses:'));
+      expect(filloutService.fetchFormResponses).toHaveBeenCalledWith('test-form');
+      expect(filloutService.saveFormResponsesToFile).toHaveBeenCalledWith('test-form', ['response1', 'response2']);
+      expect(mockResponse.json).toHaveBeenCalledWith(['response1', 'response2']);
+    });
+
+    // Note: Consider resetting mocks and spies as needed, especially if their behavior might affect other tests.
+
   });
 });

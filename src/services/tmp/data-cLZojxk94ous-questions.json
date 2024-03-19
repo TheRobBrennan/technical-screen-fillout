@@ -1,0 +1,61 @@
+{
+  "id": "cLZojxk94ous",
+  "name": "Tech Screen Questionnaire",
+  "questions": [
+    {
+      "id": "4KC356y4M6W8jHPKx9QfEy",
+      "name": "Anything else you'd like to share before your call?",
+      "type": "LongAnswer"
+    },
+    {
+      "id": "bE2Bo4cGUv49cjnqZ4UnkW",
+      "name": "What is your name?",
+      "type": "ShortAnswer"
+    },
+    {
+      "id": "dSRAe3hygqVwTpPK69p5td",
+      "name": "Please select a date to schedule your yearly check-in.",
+      "type": "DatePicker"
+    },
+    {
+      "id": "fFnyxwWa3KV6nBdfBDCHEA",
+      "name": "How many employees work under you?",
+      "type": "NumberInput"
+    },
+    {
+      "id": "jB2qDRcXQ8Pjo1kg3jre2J",
+      "name": "Which department do you work in?",
+      "type": "MultipleChoice",
+      "options": [
+        {
+          "id": "5htRiCardXxV2vZm19dczD",
+          "value": "Engineering",
+          "label": "Engineering"
+        },
+        {
+          "id": "1vSpMUqsU9mXzKQbrqxJVj",
+          "value": "Upper management",
+          "label": "Upper management"
+        },
+        {
+          "id": "e4qgpfVGZfD3FixUBU1CqJ",
+          "value": "Human resources",
+          "label": "Human resources"
+        },
+        {
+          "id": "okokaN19gTvEBbACGFj6jc",
+          "value": "Recruiting",
+          "label": "Recruiting"
+        }
+      ]
+    },
+    {
+      "id": "kc6S6ThWu3cT5PVZkwKUg4",
+      "name": "What is your email?",
+      "type": "EmailInput"
+    }
+  ],
+  "calculations": [],
+  "urlParameters": [],
+  "documents": []
+}
