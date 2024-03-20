@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { fetchFormResponses, saveFormResponsesToFile } from '../services/filloutService'; // Assume you have this function implemented
+import { applyFiltersToResponses, fetchFormResponses, saveFormResponsesToFile } from '../services/filloutService'; // Assume you have this function implemented
 
 // Redirect to filtered responses
 export const redirectToFilteredResponses = (_: Request, res: Response) => {
@@ -24,16 +24,20 @@ export const getFilteredResponses = async (req: Request, res: Response): Promise
   }
 
   try {
-    // const responses = await fetchAndSaveFormResponses(formId);
     const responses = await fetchFormResponses(formId);
-    await saveFormResponsesToFile(formId, responses);
 
     // DEBUG
     if (filters.length > 0) {
-      console.log(`TODO: Apply filters to responses: ${JSON.stringify(filters, null, 2)}`);
+      console.log(`Apply filters to responses: ${JSON.stringify(filters, null, 2)}`);
     }
 
-    res.json(responses);
+    // Apply filters to the responses if any filters are present
+    const filteredResponses = applyFiltersToResponses(responses.responses, filters);
+
+    // Save the filtered responses to a file
+    await saveFormResponsesToFile(formId, { responses: filteredResponses, totalResponses: filteredResponses.length, pageCount: 1 });
+
+    res.json(filteredResponses);
   } catch (error) {
     console.error(error);
     res.status(500).send('An error occurred while fetching form responses.');

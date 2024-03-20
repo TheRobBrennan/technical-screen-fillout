@@ -6,7 +6,8 @@ export type FilterClauseType = {
 };
 
 // Define a type for the question types
-export type QuestionType = 'LongAnswer' | 'ShortAnswer' | 'DatePicker' | 'NumberInput' | 'MultipleChoice' | 'EmailInput';
+export type QuestionType = 'LongAnswer' | 'ShortAnswer' | 'DatePicker' | 'NumberInput' | 'MultipleChoice' | 'EmailInput' | string;
+export const supportedQuestionTypes: QuestionType[] = ['LongAnswer', 'ShortAnswer', 'DatePicker', 'NumberInput', 'MultipleChoice', 'EmailInput'];
 
 // Define a type for a single question
 export type Question = {

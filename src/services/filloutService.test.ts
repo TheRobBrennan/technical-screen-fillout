@@ -1,71 +1,34 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
 import * as filloutService from './filloutService';
-import { FormResponses } from './types';
+import { FilterClauseType, FormResponses } from './types';
 
 import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import EventEmitter from 'events';
+import { SubmissionResponse, Question, QuestionType } from './types';
 
 // Mocks
+const mockResponses = await import('./mocks/responses.json');
+const sampleResponses: SubmissionResponse[] = mockResponses.responses.map((response) => {
+  const questions: Question[] = response.questions.map((question) => {
+    const { type, ...rest } = question;
+    return {
+      type: type as QuestionType,
+      ...rest,
+    };
+  });
+
+  return {
+    ...response,
+    questions,
+  };
+});
 vi.mock('https');
 vi.mock('fs');
 
 describe('filloutService', () => {
   describe('applyFiltersToResponses', () => {
-    const sampleResponses: FormResponses['responses'] = [
-      {
-        submissionId: '1',
-        submissionTime: '2024-02-27T19:37:08.228Z',
-        lastUpdatedAt: '2024-02-27T19:37:08.228Z',
-        questions: [
-          {
-            id: '1',
-            name: 'How satisfied are you with our service?',
-            type: 'NumberInput',
-            value: 10
-          }
-        ],
-        calculations: [],
-        urlParameters: [],
-        quiz: {},
-        documents: []
-      },
-      // Add more mock responses as needed
-    ];
-
-    // it('filters responses by equals condition', () => {
-    //   const filters = [{ id: 'category', condition: 'equals', value: 'A' }];
-    //   const filtered = filloutService.applyFiltersToResponses(sampleResponses, filters);
-    //   expect(filtered).toEqual([
-    //     { id: '1', value: 10, category: 'A' },
-    //     { id: '3', value: 30, category: 'A' },
-    //   ]);
-    // });
-
-    // it('filters responses by does_not_equal condition', () => {
-    //   const filters = [{ id: 'category', condition: 'does_not_equal', value: 'A' }];
-    //   const filtered = filloutService.applyFiltersToResponses(sampleResponses, filters);
-    //   expect(filtered).toEqual([{ id: '2', value: 20, category: 'B' }]);
-    // });
-
-    // it('filters responses by greater_than condition', () => {
-    //   const filters = [{ id: 'value', condition: 'greater_than', value: 15 }];
-    //   const filtered = filloutService.applyFiltersToResponses(sampleResponses, filters);
-    //   expect(filtered).toEqual([
-    //     { id: '2', value: 20, category: 'B' },
-    //     { id: '3', value: 30, category: 'A' },
-    //   ]);
-    // });
-
-    // it('filters responses by less_than condition', () => {
-    //   const filters = [{ id: 'value', condition: 'less_than', value: 30 }];
-    //   const filtered = filloutService.applyFiltersToResponses(sampleResponses, filters);
-    //   expect(filtered).toEqual([
-    //     { id: '1', value: 10, category: 'A' },
-    //     { id: '2', value: 20, category: 'B' },
-    //   ]);
-    // });
 
     it('returns all responses if no filters are applied', () => {
       const filters = [];
@@ -73,14 +36,58 @@ describe('filloutService', () => {
       expect(filtered).toEqual(sampleResponses);
     });
 
-    it('warns and returns all responses for unrecognized conditions', () => {
+    it('warns about an unsupported question type', () => {
+      // Spy on console.warn to check if it gets called with the expected message
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
-      const filters = [{ id: 'value', condition: 'unknown_condition', value: 25 }];
-      const filtered = filloutService.applyFiltersToResponses(sampleResponses, filters);
-      expect(filtered).toEqual(sampleResponses);
-      expect(consoleWarnSpy).toHaveBeenCalledWith('Unrecognized condition: unknown_condition - response will not be filtered out.');
+
+      // Create a sample response containing an unsupported question type
+      const sampleResponsesWithUnsupportedType = [
+        {
+          submissionId: "exampleId1",
+          submissionTime: "2024-02-27T19:37:08.228Z",
+          lastUpdatedAt: "2024-02-27T19:37:08.228Z",
+          questions: [
+            {
+              id: "unsupportedQuestionId",
+              name: "Unsupported Question",
+              type: "UnsupportedType", // This is the unsupported question type
+              value: "Some value"
+            }
+          ],
+          calculations: [],
+          urlParameters: [],
+          quiz: {},
+          documents: []
+        }
+      ];
+
+      // REMEMBER: We need at least one filter to trigger the filtering logic
+      const filters = [{ id: "kc6S6ThWu3cT5PVZkwKUg4", condition: 'equals', value: "billy@fillout.com" }];
+
+      // Call applyFiltersToResponses with the sample response and empty filters
+      filloutService.applyFiltersToResponses(sampleResponsesWithUnsupportedType, filters);
+
+      // Check if console.warn was called with the expected message
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Unrecognized question type: UnsupportedType - response will not be filtered out.'));
+
+      // Restore the original console.warn function
       consoleWarnSpy.mockRestore();
     });
+
+    it('correctly filters responses using the equals filter for a specific questionId and email address', () => {
+      // Define the filter for a specific questionId and email address
+      const filters = [{ id: "kc6S6ThWu3cT5PVZkwKUg4", condition: 'equals', value: "johnny@fillout.com" }];
+
+      // Call applyFiltersToResponses with the sample responses and the defined filter
+      const filteredResponses = filloutService.applyFiltersToResponses(sampleResponses, filters);
+
+      // Check that the filtered responses contain only the matching response
+      expect(filteredResponses.length).toBe(1);
+      const matchingQuestion = filteredResponses[0].questions.find(q => q.id === "kc6S6ThWu3cT5PVZkwKUg4");
+      expect(matchingQuestion).toBeDefined();
+      expect(matchingQuestion?.value).toBe("johnny@fillout.com");
+    });
+
   });
 
   // Adjusting the test environment to match the expected file path logic
