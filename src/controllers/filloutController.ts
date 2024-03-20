@@ -24,15 +24,14 @@ export const getFilteredResponses = async (req: Request, res: Response): Promise
   }
 
   try {
-    // const responses = await fetchAndSaveFormResponses(formId);
     const responses = await fetchFormResponses(formId);
-    await saveFormResponsesToFile(formId, responses);
 
     // DEBUG
     if (filters.length > 0) {
       console.log(`TODO: Apply filters to responses: ${JSON.stringify(filters, null, 2)}`);
     }
 
+    await saveFormResponsesToFile(formId, responses);
     res.json(responses);
   } catch (error) {
     console.error(error);
