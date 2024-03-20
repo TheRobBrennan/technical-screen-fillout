@@ -2,12 +2,7 @@ import https from 'https';
 import fs from 'fs';
 import path from 'path';
 
-// Defined per the project requirements at https://fillout.notion.site/Software-engineering-assignment-fbd58fd78f59495c99866b91b1358221
-type FilterClauseType = {
-  id: string;
-  condition: 'equals' | 'does_not_equal' | 'greater_than' | 'less_than';
-  value: number | string;
-};
+import { FilterClauseType } from './types';
 
 export const applyFiltersToResponses = (responses: any[], filters: FilterClauseType[]) => {
   return filters.reduce((filteredResponses, filter) => {
