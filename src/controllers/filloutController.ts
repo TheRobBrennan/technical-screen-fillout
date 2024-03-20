@@ -24,6 +24,7 @@ export const getFilteredResponses = async (req: Request, res: Response): Promise
   }
 
   try {
+    // TODO: Make sure the pagination still works in the response (i.e. the totalResponses and pageCount)
     const responses = await fetchFormResponses(formId);
 
     // DEBUG
