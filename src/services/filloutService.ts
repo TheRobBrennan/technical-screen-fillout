@@ -7,34 +7,23 @@ import { FilterClauseType, FormResponses, supportedQuestionTypes } from './types
 export const applyFiltersToResponses = (responses: FormResponses['responses'], filters: FilterClauseType[]) => {
   if (filters.length === 0) return responses; // Return early if no filters are provided
 
-  // Iterate over each filter and apply it sequentially to the responses
-  const filteredResponses = responses.map(response => {
-    // Process each question in a response against all filters
-    const processedQuestions = response.questions.map(question => {
-      // Check if the question type is among the supported types
+  // Filter responses based on the conditions, checking for supported question types
+  const filteredResponses = responses.filter(response => {
+    return response.questions.some(question => {
+      // Check if the question type is supported
       if (!supportedQuestionTypes.includes(question.type)) {
-        // Log a warning for unsupported question types
+        // Log a warning for unsupported question types and skip filtering for this question
         console.warn(`Unrecognized question type: ${question.type} - response will not be filtered out.`);
-        return question; // Return the question unfiltered
-      } else {
-        // For supported question types, apply each filter if applicable
-        let isFiltered = false;
-        filters.forEach(filter => {
-          // Example filter application logic (you'll need to customize this)
-          // Here we are not applying any specific filtering, but you can add your logic
-          // isFiltered = true; if the question should be filtered out based on this filter's criteria
-        });
-
-        // If no filter has marked the question for filtering, return it
-        return isFiltered ? null : question;
+        return false; // Do not exclude the response based on this question
       }
-    }).filter(q => q !== null); // Filter out questions marked by filters
 
-    // Return the modified response with processed questions
-    return {
-      ...response,
-      questions: processedQuestions,
-    };
+      // Find if there's any matching filter for this supported question type
+      const filter = filters.find(filter => filter.id === question.id && filter.condition === 'equals');
+      if (!filter) return false; // No matching filter for this question
+
+      // Apply the 'equals' filter for supported question types
+      return question.value === filter.value;
+    });
   });
 
   return filteredResponses;

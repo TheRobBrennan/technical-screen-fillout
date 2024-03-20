@@ -10,25 +10,25 @@ import { SubmissionResponse, Question, QuestionType } from './types';
 
 // Mocks
 const mockResponses = await import('./mocks/responses.json');
+const sampleResponses: SubmissionResponse[] = mockResponses.responses.map((response) => {
+  const questions: Question[] = response.questions.map((question) => {
+    const { type, ...rest } = question;
+    return {
+      type: type as QuestionType,
+      ...rest,
+    };
+  });
+
+  return {
+    ...response,
+    questions,
+  };
+});
 vi.mock('https');
 vi.mock('fs');
 
 describe('filloutService', () => {
   describe('applyFiltersToResponses', () => {
-    const sampleResponses: SubmissionResponse[] = mockResponses.responses.map((response) => {
-      const questions: Question[] = response.questions.map((question) => {
-        const { type, ...rest } = question;
-        return {
-          type: type as QuestionType,
-          ...rest,
-        };
-      });
-
-      return {
-        ...response,
-        questions,
-      };
-    });
 
     it('returns all responses if no filters are applied', () => {
       const filters = [];
@@ -72,6 +72,20 @@ describe('filloutService', () => {
 
       // Restore the original console.warn function
       consoleWarnSpy.mockRestore();
+    });
+
+    it('correctly filters responses using the equals filter for a specific questionId and email address', () => {
+      // Define the filter for a specific questionId and email address
+      const filters = [{ id: "kc6S6ThWu3cT5PVZkwKUg4", condition: 'equals', value: "johnny@fillout.com" }];
+
+      // Call applyFiltersToResponses with the sample responses and the defined filter
+      const filteredResponses = filloutService.applyFiltersToResponses(sampleResponses, filters);
+
+      // Check that the filtered responses contain only the matching response
+      expect(filteredResponses.length).toBe(1);
+      const matchingQuestion = filteredResponses[0].questions.find(q => q.id === "kc6S6ThWu3cT5PVZkwKUg4");
+      expect(matchingQuestion).toBeDefined();
+      expect(matchingQuestion?.value).toBe("johnny@fillout.com");
     });
 
   });
