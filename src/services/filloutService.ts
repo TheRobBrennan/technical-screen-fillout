@@ -7,7 +7,7 @@ import { FilterClauseType, FormResponses } from './types';
 export const applyFiltersToResponses = (responses: FormResponses['responses'], filters: FilterClauseType[]) => {
   return filters.reduce((filteredResponses, filter) => {
     return filteredResponses.filter(_ => {
-      // TODO: Implement the logic to compare the response value with the filter value
+      // TODO: Implement the filtering logic
       switch (filter.condition) {
         //       case 'equals':
         //         return responseValue === filter.value;
