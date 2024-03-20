@@ -6,33 +6,29 @@ import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import EventEmitter from 'events';
+import { SubmissionResponse, Question, QuestionType } from './types';
 
 // Mocks
+const mockResponses = await import('./mocks/responses.json');
 vi.mock('https');
 vi.mock('fs');
 
 describe('filloutService', () => {
   describe('applyFiltersToResponses', () => {
-    const sampleResponses: FormResponses['responses'] = [
-      {
-        submissionId: '1',
-        submissionTime: '2024-02-27T19:37:08.228Z',
-        lastUpdatedAt: '2024-02-27T19:37:08.228Z',
-        questions: [
-          {
-            id: '1',
-            name: 'How satisfied are you with our service?',
-            type: 'NumberInput',
-            value: 10
-          }
-        ],
-        calculations: [],
-        urlParameters: [],
-        quiz: {},
-        documents: []
-      },
-      // Add more mock responses as needed
-    ];
+    const sampleResponses: SubmissionResponse[] = mockResponses.responses.map((response) => {
+      const questions: Question[] = response.questions.map((question) => {
+        const { type, ...rest } = question;
+        return {
+          type: type as QuestionType,
+          ...rest,
+        };
+      });
+
+      return {
+        ...response,
+        questions,
+      };
+    });
 
     // it('filters responses by equals condition', () => {
     //   const filters = [{ id: 'category', condition: 'equals', value: 'A' }];
