@@ -1,7 +1,7 @@
 // Defined per the project requirements at https://fillout.notion.site/Software-engineering-assignment-fbd58fd78f59495c99866b91b1358221
 export type FilterClauseType = {
   id: string;
-  condition: 'equals' | 'does_not_equal' | 'greater_than' | 'less_than';
+  condition: unknown | 'equals' | 'does_not_equal' | 'greater_than' | 'less_than';
   value: number | string;
 };
 
