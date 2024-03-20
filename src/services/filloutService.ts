@@ -2,28 +2,42 @@ import https from 'https';
 import fs from 'fs';
 import path from 'path';
 
-import { FilterClauseType, FormResponses } from './types';
+import { FilterClauseType, FormResponses, supportedQuestionTypes } from './types';
 
 export const applyFiltersToResponses = (responses: FormResponses['responses'], filters: FilterClauseType[]) => {
-  return filters.reduce((filteredResponses, filter) => {
-    return filteredResponses.filter(_ => {
-      // TODO: Implement the filtering logic
-      switch (filter.condition) {
-        //       case 'equals':
-        //         return responseValue === filter.value;
-        //       case 'does_not_equal':
-        //         return responseValue !== filter.value;
-        //       case 'greater_than':
-        //         return Number(responseValue) > Number(filter.value);
-        //       case 'less_than':
-        //         return Number(responseValue) < Number(filter.value);
-        default:
-          // In case of an unrecognized condition, don't filter out any responses
-          console.warn(`Unrecognized condition: ${filter.condition} - response will not be filtered out.`);
-          return true;
+  if (filters.length === 0) return responses; // Return early if no filters are provided
+
+  // Iterate over each filter and apply it sequentially to the responses
+  const filteredResponses = responses.map(response => {
+    // Process each question in a response against all filters
+    const processedQuestions = response.questions.map(question => {
+      // Check if the question type is among the supported types
+      if (!supportedQuestionTypes.includes(question.type)) {
+        // Log a warning for unsupported question types
+        console.warn(`Unrecognized question type: ${question.type} - response will not be filtered out.`);
+        return question; // Return the question unfiltered
+      } else {
+        // For supported question types, apply each filter if applicable
+        let isFiltered = false;
+        filters.forEach(filter => {
+          // Example filter application logic (you'll need to customize this)
+          // Here we are not applying any specific filtering, but you can add your logic
+          // isFiltered = true; if the question should be filtered out based on this filter's criteria
+        });
+
+        // If no filter has marked the question for filtering, return it
+        return isFiltered ? null : question;
       }
-    })
-  }, responses);
+    }).filter(q => q !== null); // Filter out questions marked by filters
+
+    // Return the modified response with processed questions
+    return {
+      ...response,
+      questions: processedQuestions,
+    };
+  });
+
+  return filteredResponses;
 };
 
 export const fetchAndSaveFormResponses = (formId: string): Promise<FormResponses> => {

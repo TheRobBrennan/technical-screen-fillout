@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
 import * as filloutService from './filloutService';
-import { FormResponses } from './types';
+import { FilterClauseType, FormResponses } from './types';
 
 import https from 'https';
 import fs from 'fs';
@@ -69,12 +69,41 @@ describe('filloutService', () => {
       expect(filtered).toEqual(sampleResponses);
     });
 
-    it('warns and returns all responses for unrecognized conditions', () => {
+    it('warns and does not filter out questions for unsupported question types', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
-      const filters = [{ id: 'value', condition: 'unknown_condition', value: 25 }];
-      const filtered = filloutService.applyFiltersToResponses(sampleResponses, filters);
-      expect(filtered).toEqual(sampleResponses);
-      expect(consoleWarnSpy).toHaveBeenCalledWith('Unrecognized condition: unknown_condition - response will not be filtered out.');
+
+      // Assuming 'UnsupportedType' is not in your supportedQuestionTypes list
+      // Modify a question in sampleResponses to have an unsupported type
+      const mockResponsesWithUnsupportedQuestionType = sampleResponses.map(response => ({
+        ...response,
+        questions: response.questions.map((question, index) => {
+          if (index === 0) { // Just modifying the first question for demonstration
+            return { ...question, type: 'UnsupportedType' };
+          }
+          return question;
+        }),
+      }));
+
+      // Apply any filter, since logic is based on question type, not filter specifics
+      const modifiedSampleResponses: SubmissionResponse[] = mockResponsesWithUnsupportedQuestionType.map(response => ({
+        ...response,
+        questions: response.questions.map((question, index) => {
+          if (index === 0) {
+            return { ...question, type: 'UnsupportedType' as QuestionType };
+          }
+          return question;
+        }),
+      }));
+
+      const filters: FilterClauseType[] = [{ id: 'someId', condition: 'equals', value: 'SomeValue' }];
+      const filteredResponses = filloutService.applyFiltersToResponses(modifiedSampleResponses, filters);
+
+      // Expect the console to warn about the unsupported question type
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Unrecognized question type: UnsupportedType - response will not be filtered out.'));
+
+      // Expect the responses to not be filtered, since the unsupported question type should not affect filtering
+      expect(filteredResponses).toEqual(modifiedSampleResponses);
+
       consoleWarnSpy.mockRestore();
     });
   });
