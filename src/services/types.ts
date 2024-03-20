@@ -22,10 +22,12 @@ export type SubmissionResponse = {
   submissionTime: string;
   lastUpdatedAt: string;
   questions: Question[];
-  calculations: any[]; // Adjust the 'any' type as needed based on the actual structure
-  urlParameters: any[]; // Adjust the 'any' type as needed based on the actual structure
-  quiz: any; // Adjust the 'any' type as needed based on the actual structure
-  documents: any[]; // Adjust the 'any' type as needed based on the actual structure
+
+  // FUTURE: Adjust the 'any' type as needed based on the actual structure of the response once these need to be used
+  calculations: any[];
+  urlParameters: any[];
+  quiz: any;
+  documents: any[];
 };
 
 // Define the type for the API response containing all form responses
