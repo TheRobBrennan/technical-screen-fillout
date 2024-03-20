@@ -65,10 +65,13 @@ describe('filloutService', () => {
       const filters = [{ id: "kc6S6ThWu3cT5PVZkwKUg4", condition: 'equals', value: "billy@fillout.com" }];
 
       // Call applyFiltersToResponses with the sample response and empty filters
-      filloutService.applyFiltersToResponses(sampleResponsesWithUnsupportedType, filters);
+      const filteredResponses = filloutService.applyFiltersToResponses(sampleResponsesWithUnsupportedType, filters);
 
       // Check if console.warn was called with the expected message
       expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Unrecognized question type: UnsupportedType - response will not be filtered out.'));
+
+      // Check that the filtered responses contain the original response
+      expect(filteredResponses.length).toBe(1);
 
       // Restore the original console.warn function
       consoleWarnSpy.mockRestore();
