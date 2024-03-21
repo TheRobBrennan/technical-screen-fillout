@@ -156,7 +156,7 @@ describe('filloutService', () => {
       const filteredResponses = filloutService.applyFiltersToResponses(sampleResponses, filters);
 
       // Check that the filtered responses contain only the matching response
-      // expect(filteredResponses.length).toBe(1);
+      expect(filteredResponses.length).toBe(1);
       const matchingQuestion = filteredResponses[0].questions.find(q => q.id === "kc6S6ThWu3cT5PVZkwKUg4");
       expect(matchingQuestion).toBeDefined();
       expect(matchingQuestion?.value).toBe("johnny@fillout.com");
