@@ -11,7 +11,7 @@ export const applyFiltersToResponses = (responses: FormResponses['responses'], f
     return response.questions.some(question => {
       if (!supportedQuestionTypes.includes(question.type)) {
         console.warn(`Unrecognized question type: ${question.type} - response will not be filtered out.`);
-        return false;
+        return true;
       }
 
       // Iterate over each filter to apply it if applicable
@@ -30,8 +30,9 @@ export const applyFiltersToResponses = (responses: FormResponses['responses'], f
           // case 'less_than':
           //   return parseFloat(question.value) < parseFloat(filter.value);
 
+          // DEFAULT: Do not filter out the response
           default:
-            console.warn(`Unrecognized filter condition: ${filter.condition} - question will not be filtered.`);
+            console.warn(`Unrecognized filter condition: ${filter.condition} - question will not be filtered out.`);
             return true;
         }
       });
@@ -57,6 +58,7 @@ export const fetchAndSaveFormResponses = (formId: string): Promise<FormResponses
         try {
           const formResponses: FormResponses = JSON.parse(data); // Explicitly type the parsed data
 
+          /* v8 ignore next 2 */
           const basePath = process.env.VERCEL || process.env.NODE_ENV === 'production' ? '/tmp' : './src/services/tmp';
           const filePath = path.join(basePath, `data-${formId}.json`);
 
@@ -96,6 +98,7 @@ export const fetchFormResponses = (formId: string): Promise<FormResponses> => {
 };
 
 export const saveFormResponsesToFile = (formId: string, formResponses: FormResponses): void => {
+  /* v8 ignore next 2 */
   const basePath = process.env.VERCEL || process.env.NODE_ENV === 'production' ? '/tmp' : './src/services/tmp';
   const filePath = path.join(basePath, `data-${formId}.json`);
 

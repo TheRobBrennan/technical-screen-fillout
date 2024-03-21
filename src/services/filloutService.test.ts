@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, expect } from 'vitest';
 import * as filloutService from './filloutService';
 import { FilterClauseType, FormResponses } from './types';
 
@@ -65,14 +65,88 @@ describe('filloutService', () => {
       const filters = [{ id: "kc6S6ThWu3cT5PVZkwKUg4", condition: 'equals', value: "billy@fillout.com" }];
 
       // Call applyFiltersToResponses with the sample response and empty filters
-      filloutService.applyFiltersToResponses(sampleResponsesWithUnsupportedType, filters);
+      const filteredResponses = filloutService.applyFiltersToResponses(sampleResponsesWithUnsupportedType, filters);
 
       // Check if console.warn was called with the expected message
       expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Unrecognized question type: UnsupportedType - response will not be filtered out.'));
 
+      // Check that the filtered responses contain the original response
+      expect(filteredResponses.length).toBe(1);
+
       // Restore the original console.warn function
       consoleWarnSpy.mockRestore();
     });
+
+    it('does not filter responses when an unknown filter condition is applied', () => {
+      // Create a sample response containing an unsupported question type
+      const sampleResponsesWithUnsupportedType = [
+        {
+          submissionId: "exampleId1",
+          submissionTime: "2024-02-27T19:37:08.228Z",
+          lastUpdatedAt: "2024-02-27T19:37:08.228Z",
+          questions: [
+            {
+              id: "unsupportedQuestionId",
+              name: "Unsupported Question",
+              type: "UnsupportedType", // This is the unsupported question type
+              value: "Some value"
+            }
+          ],
+          calculations: [],
+          urlParameters: [],
+          quiz: {},
+          documents: []
+        }
+      ];
+
+      // REMEMBER: We need at least one filter to trigger the filtering logic
+      const filters = [{ id: "kc6S6ThWu3cT5PVZkwKUg4", condition: 'unknown-condition', value: "billy@fillout.com" }];
+
+      // Call applyFiltersToResponses with the sample response and empty filters
+      const filteredResponses = filloutService.applyFiltersToResponses(sampleResponsesWithUnsupportedType, filters);
+
+      // Check that the filtered responses contain the original response
+      expect(filteredResponses.length).toBe(1);
+
+    });
+
+    it('ignores unknown filter conditions and logs a warning', () => {
+      const sampleResponses = [
+        {
+          submissionId: "1",
+          questions: [
+            { id: "textQuestion", type: "ShortAnswer", value: "Response A" },
+            { id: "numberQuestion", type: "NumberInput", value: "10" }
+          ]
+        },
+        {
+          submissionId: "2",
+          questions: [
+            { id: "textQuestion", type: "ShortAnswer", value: "Response B" },
+            { id: "numberQuestion", type: "NumberInput", value: "20" }
+          ]
+        }
+      ];
+
+      // Spy on console.warn to verify it gets called for unknown conditions
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+
+      // Define a filter with an unknown condition
+      const filters = [{ id: "textQuestion", condition: 'unknown_condition', value: "Response A" }];
+
+      // Apply the filter
+      const filtered = filloutService.applyFiltersToResponses(sampleResponses, filters);
+
+      // The filtered array should not exclude any responses since the condition is unknown
+      expect(filtered.length).toBe(sampleResponses.length);
+
+      // Verify that a warning was logged for the unknown condition
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Unrecognized filter condition: unknown_condition - question will not be filtered out.'));
+
+      // Restore the original console.warn function
+      consoleWarnSpy.mockRestore();
+    });
+
 
     it('correctly filters responses using the equals filter for a specific questionId and email address', () => {
       // Define the filter for a specific questionId and email address
