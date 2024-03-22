@@ -1,6 +1,7 @@
 import https from 'https';
 import fs from 'fs';
 import path from 'path';
+import { basePath } from '../utils/pathUtils';
 
 import { FilterClauseType, FormResponses, supportedQuestionTypes } from './types';
 
@@ -59,9 +60,6 @@ export const fetchAndSaveFormResponses = (formId: string): Promise<FormResponses
       response.on('end', () => {
         try {
           const formResponses: FormResponses = JSON.parse(data); // Explicitly type the parsed data
-
-          /* v8 ignore next 2 */
-          const basePath = process.env.VERCEL || process.env.NODE_ENV === 'production' ? '/tmp' : './src/services/tmp';
           const filePath = path.join(basePath, `data-${formId}.json`);
 
           fs.writeFileSync(filePath, JSON.stringify(formResponses, null, 2), 'utf-8');
@@ -100,8 +98,6 @@ export const fetchFormResponses = (formId: string): Promise<FormResponses> => {
 };
 
 export const saveFormResponsesToFile = (formId: string, formResponses: FormResponses): void => {
-  /* v8 ignore next 2 */
-  const basePath = process.env.VERCEL || process.env.NODE_ENV === 'production' ? '/tmp' : './src/services/tmp';
   const filePath = path.join(basePath, `data-${formId}.json`);
 
   fs.writeFileSync(filePath, JSON.stringify(formResponses, null, 2), 'utf-8');
