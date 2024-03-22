@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { handleDoesNotEqualCondition } from './handleDoesNotEqualCondition';
-import { Question } from "../../types";
+import { Question } from "../types";
 
 describe('handleDoesNotEqualCondition', () => {
   it('returns false for matching dates', () => {
