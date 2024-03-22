@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { applyFiltersToResponses, fetchFormResponses, saveFormResponsesToFile } from '../../services/fillout/filloutService'; // Assume you have this function implemented
+import { applyFiltersToResponses, fetchAllFormResponses, saveFormResponsesToFile } from '../../services/fillout/filloutService'; // Assume you have this function implemented
 
 // Redirect to filtered responses
 export const redirectToFilteredResponses = (_: Request, res: Response) => {
@@ -24,8 +24,8 @@ export const getFilteredResponses = async (req: Request, res: Response): Promise
   }
 
   try {
-    // TODO: Make sure the pagination still works in the response (i.e. the totalResponses and pageCount)
-    const responses = await fetchFormResponses(formId);
+    // const responses = await fetchFormResponses(formId);
+    const responses = await fetchAllFormResponses(formId);
 
     // DEBUG
     if (filters.length > 0) {
@@ -33,7 +33,7 @@ export const getFilteredResponses = async (req: Request, res: Response): Promise
     }
 
     // Apply filters to the responses if any filters are present
-    const filteredResponses = applyFiltersToResponses(responses.responses, filters);
+    const filteredResponses = applyFiltersToResponses(responses, filters);
 
     // Save the filtered responses to a file
     await saveFormResponsesToFile(formId, { responses: filteredResponses, totalResponses: filteredResponses.length, pageCount: 1 });
