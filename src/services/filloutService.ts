@@ -44,6 +44,7 @@ export const applyFiltersToResponses = (responses: FormResponses['responses'], f
 
   return filteredResponses;
 };
+
 export const fetchAndSaveFormResponses = (formId: string): Promise<FormResponses> => {
   return new Promise((resolve, reject) => {
     const url = `https://api.fillout.com/v1/api/forms/${formId}`;
