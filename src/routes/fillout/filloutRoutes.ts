@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { redirectToFilteredResponses, getFilteredResponses } from '../controllers/filloutController';
+import { redirectToFilteredResponses, getFilteredResponses } from '../../controllers/fillout/filloutController';
 
 const router = Router();
 
