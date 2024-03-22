@@ -3,11 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { basePath } from '../utils/pathUtils';
 
-import { FilterClauseType, FormResponses, supportedQuestionTypes } from './types';
-
-// Define a type for the condition check functions
-// TODO: Move this to our types file
-type ConditionCheck = (questionValue: string, filterValue: string) => boolean;
+import { FilterClauseType, FormResponses, supportedQuestionTypes, ConditionCheck } from './types';
 
 // Implement a map of condition check functions
 const conditionChecks: Record<string, ConditionCheck> = {
