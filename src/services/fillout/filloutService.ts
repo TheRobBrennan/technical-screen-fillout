@@ -22,7 +22,7 @@ const conditionChecks: Record<string, ConditionCheck> = {
   'less_than': handleLessThanCondition,
 };
 
-export const applyFiltersToResponses = (responses: FormResponses['responses'], filters: FilterClauseType[]) => {
+export const applyFiltersToResponses = (responses: FormResponses['responses'], filters: FilterClauseType[]): FormResponses['responses'] => {
   if (filters.length === 0) return responses; // Return early if no filters are provided
 
   const filteredResponses = responses.filter(response => {
@@ -50,6 +50,41 @@ export const applyFiltersToResponses = (responses: FormResponses['responses'], f
   });
 
   return filteredResponses;
+};
+
+export const fetchAllFormResponses = async (formId: string, offset = 0, allResponses: FormResponses['responses'] = []): Promise<FormResponses['responses']> => {
+  const entriesPerPage = 150;
+  const url = `https://api.fillout.com/v1/api/forms/${formId}/submissions?offset=${offset}`;
+  const apiKey = process.env.FILLOUT_API_KEY;
+
+  try {
+    const response = await new Promise((resolve, reject) => {
+      https.get(url, {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      }, res => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => resolve(JSON.parse(data)));
+      }).on('error', error => reject(error));
+    });
+
+    const formResponses: FormResponses = response as FormResponses;
+    allResponses = allResponses.concat(formResponses.responses);
+
+    // Check if there are more entries to fetch based on the pageCount
+    if (formResponses.pageCount > (offset / entriesPerPage) + 1) {
+      // Increment the offset for the next page and fetch more responses
+      return fetchAllFormResponses(formId, offset + entriesPerPage, allResponses);
+    }
+
+    return allResponses;
+  } catch (error) {
+    console.error(`Failed to fetch form responses: ${error}`);
+    throw new Error('Failed to fetch form responses');
+  }
 };
 
 export const fetchFormResponses = (formId: string): Promise<FormResponses> => {
