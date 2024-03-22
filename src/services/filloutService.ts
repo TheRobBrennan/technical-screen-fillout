@@ -4,6 +4,7 @@ import path from 'path';
 import { basePath } from '../utils/pathUtils';
 import { handleEqualsCondition } from './fillout/filters/handleEqualsCondition';
 import { handleDoesNotEqualCondition } from './fillout/filters/handleDoesNotEqualCondition';
+import { handleGreaterThanCondition } from './fillout/filters/handleGreaterThanCondition';
 
 import { FilterClauseType, FormResponses, supportedQuestionTypes, ConditionCheck } from './types';
 
@@ -16,9 +17,9 @@ const conditionChecks: Record<string, ConditionCheck> = {
   */
   'equals': handleEqualsCondition,
   'does_not_equal': handleDoesNotEqualCondition,
+  'greater_than': handleGreaterThanCondition,
 
   // TODO: Implement the remaining condition checks
-  // 'greater_than': (questionValue, filterValue) => parseFloat(questionValue) > parseFloat(filterValue),
   // 'less_than': (questionValue, filterValue) => parseFloat(questionValue) < parseFloat(filterValue),
 };
 
