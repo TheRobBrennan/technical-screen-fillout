@@ -52,34 +52,6 @@ export const applyFiltersToResponses = (responses: FormResponses['responses'], f
   return filteredResponses;
 };
 
-export const fetchAndSaveFormResponses = (formId: string): Promise<FormResponses> => {
-  return new Promise((resolve, reject) => {
-    const url = `https://api.fillout.com/v1/api/forms/${formId}`;
-    const apiKey = process.env.FILLOUT_API_KEY;
-
-    https.get(url, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
-    }, response => {
-      let data = '';
-      response.on('data', chunk => data += chunk);
-      response.on('end', () => {
-        try {
-          const formResponses: FormResponses = JSON.parse(data); // Explicitly type the parsed data
-          const filePath = path.join(basePath, `data-${formId}.json`);
-
-          fs.writeFileSync(filePath, JSON.stringify(formResponses, null, 2), 'utf-8');
-          resolve(formResponses);
-        } catch (error) {
-          reject(error);
-        }
-      });
-    }).on('error', error => reject(error));
-  });
-};
-
 export const fetchFormResponses = (formId: string): Promise<FormResponses> => {
   return new Promise((resolve, reject) => {
     const url = `https://api.fillout.com/v1/api/forms/${formId}/submissions`;
