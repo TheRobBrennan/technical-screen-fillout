@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, Mock } from 'vitest';
 import * as filloutService from './filloutService';
-import { FilterClauseType, FormResponses } from './types';
+import { FormResponses } from './types';
 
 import https from 'https';
 import fs from 'fs';
@@ -111,39 +111,44 @@ describe('filloutService', () => {
     });
 
     it('ignores unknown filter conditions and logs a warning', () => {
-      const sampleResponses = [
+      // This setup seems correct but ensure it matches the expected data structure
+      const sampleResponses: SubmissionResponse[] = [
         {
           submissionId: "1",
+          submissionTime: "2024-02-27T19:37:08.228Z",
+          lastUpdatedAt: "2024-02-27T19:37:08.228Z",
+          calculations: [],
+          urlParameters: [],
           questions: [
-            { id: "textQuestion", type: "ShortAnswer", value: "Response A" },
-            { id: "numberQuestion", type: "NumberInput", value: "10" }
-          ]
+            { id: "textQuestion", type: "ShortAnswer", value: "Response A", name: "Text Question" },
+            { id: "numberQuestion", type: "NumberInput", value: "10", name: "Number Question" }
+          ],
+          documents: [],
+          quiz: {} // Add the missing 'quiz' property
         },
         {
           submissionId: "2",
+          submissionTime: "2024-02-27T19:37:08.228Z",
+          lastUpdatedAt: "2024-02-27T19:37:08.228Z",
+          calculations: [],
+          urlParameters: [],
           questions: [
-            { id: "textQuestion", type: "ShortAnswer", value: "Response B" },
-            { id: "numberQuestion", type: "NumberInput", value: "20" }
-          ]
+            { id: "textQuestion", type: "ShortAnswer", value: "Response B", name: "Text Question" },
+            { id: "numberQuestion", type: "NumberInput", value: "20", name: "Number Question" }
+          ],
+          documents: [],
+          quiz: {} // Add the missing 'quiz' property
         }
       ];
 
-      // Spy on console.warn to verify it gets called for unknown conditions
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
 
-      // Define a filter with an unknown condition
       const filters = [{ id: "textQuestion", condition: 'unknown_condition', value: "Response A" }];
 
-      // Apply the filter
       const filtered = filloutService.applyFiltersToResponses(sampleResponses, filters);
 
-      // The filtered array should not exclude any responses since the condition is unknown
       expect(filtered.length).toBe(sampleResponses.length);
-
-      // Verify that a warning was logged for the unknown condition
       expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Unrecognized filter condition: unknown_condition - question will not be filtered out.'));
-
-      // Restore the original console.warn function
       consoleWarnSpy.mockRestore();
     });
 
@@ -161,7 +166,6 @@ describe('filloutService', () => {
       expect(matchingQuestion).toBeDefined();
       expect(matchingQuestion?.value).toBe("johnny@fillout.com");
     });
-
   });
 
   // Adjusting the test environment to match the expected file path logic
@@ -186,15 +190,29 @@ describe('filloutService', () => {
       // Reset all mocks
       vi.resetAllMocks();
 
-      // Mock https.get implementation
-      https.get.mockImplementation((url, options, callback) => {
-        const resp = new EventEmitter();
+      // Cast the https get method to vi.Mock and provide a mock implementation
+      (https.get as unknown as Mock).mockImplementation((url, options, callback) => {
+        const mockResponse = new EventEmitter() as any;
+        mockResponse.statusCode = 200;
+        mockResponse.headers = {}; // Add if you need to mock headers
+        mockResponse.on = (event, handler) => {
+          if (event === 'data') {
+            handler(JSON.stringify(mockData));
+          }
+          if (event === 'end') {
+            process.nextTick(handler);
+          }
+        };
+
         process.nextTick(() => {
-          resp.emit('data', JSON.stringify(mockData));
-          resp.emit('end');
+          if (callback) callback(mockResponse);
         });
-        callback(resp);
-        return { on: vi.fn() };
+
+        // Return a mock request object, similar to what https.get would return
+        return {
+          on: vi.fn(),
+          // Mock other methods if necessary
+        } as any;
       });
 
       // Mock fs.writeFileSync to avoid filesystem operations
@@ -218,7 +236,7 @@ describe('filloutService', () => {
 
     it('rejects the promise on a network error', async () => {
       // Mock https.get to simulate a network error
-      https.get.mockImplementation((url, options, callback) => {
+      (https.get as Mock).mockImplementation((url, options, callback) => {
         const req = new EventEmitter();
         process.nextTick(() => {
           req.emit('error', new Error('Network error'));
@@ -237,7 +255,7 @@ describe('filloutService', () => {
 
     it('rejects the promise on JSON parsing error', async () => {
       // Mock https.get to simulate receiving invalid JSON
-      https.get.mockImplementation((url, options, callback) => {
+      (https.get as Mock).mockImplementation((url, options, callback) => {
         const resp = new EventEmitter();
         process.nextTick(() => {
           // Emitting data that will cause a JSON.parse error
@@ -282,7 +300,7 @@ describe('filloutService', () => {
         callback(response);
         return { on: vi.fn() };
       });
-      https.get.mockImplementation(requestMock);
+      (https.get as Mock).mockImplementation(requestMock);
 
       const responses = await filloutService.fetchFormResponses(formId);
       expect(https.get).toHaveBeenCalledWith(
@@ -300,7 +318,7 @@ describe('filloutService', () => {
 
     it('handles JSON parsing error', async () => {
       // Simulate a JSON parsing error by returning invalid JSON
-      https.get.mockImplementation((url, options, callback) => {
+      (https.get as Mock).mockImplementation((url, options, callback) => {
         const response = new EventEmitter();
         process.nextTick(() => {
           response.emit('data', 'Invalid JSON');
@@ -317,7 +335,7 @@ describe('filloutService', () => {
 
     it('handles network errors', async () => {
       // Simulate a network error
-      https.get.mockImplementation((url, options, callback) => {
+      (https.get as Mock).mockImplementation((url, options, callback) => {
         const req = new EventEmitter();
         process.nextTick(() => {
           req.emit('error', new Error('Network error'));
@@ -345,8 +363,15 @@ describe('filloutService', () => {
     });
 
     it('saves form responses to a file', () => {
-      // Call your function that uses path.join
-      filloutService.saveFormResponsesToFile('test-form', [{ id: '1', answer: 'Yes' }]);
+      // Create an object of type 'FormResponses' with the required properties
+      const formResponses: FormResponses = {
+        responses: sampleResponses,
+        totalResponses: 1,
+        pageCount: 1
+      };
+
+      // Call your function that uses path.join and pass the formResponses object
+      filloutService.saveFormResponsesToFile('test-form', formResponses);
 
       // Now you can check if path.join was called as expected
       expect(joinSpy).toHaveBeenCalled();
