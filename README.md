@@ -80,6 +80,9 @@ If you are eager to run the test suite and/or see the code coverage report:
 # Run the test suite
 npm test
 
+# OPTIONAL: Run the test suite in verbose mode
+npm run test:verbose
+
 # OPTIONAL: Generate code coverage for the test suite
 npm run test:coverage
 

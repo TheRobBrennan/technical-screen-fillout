@@ -5,6 +5,7 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:coverage:open": "vitest run --coverage && open coverage/index.html",
+    "test:verbose": "vitest --reporter verbose",
     "start": "npm run dev",
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",
