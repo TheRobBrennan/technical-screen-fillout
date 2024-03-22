@@ -1,4 +1,14 @@
-node_modules
+# Environment variables
 .env
+
+# Node modules
+node_modules
+
+# Coverage directory
 coverage
+
+# Vercel
 .vercel
+
+# Temporary files
+src/services/fillout/tmp/
