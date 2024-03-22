@@ -3,7 +3,6 @@ import * as filloutService from './filloutService';
 import { FormResponses } from './types';
 
 import https from 'https';
-import fs from 'fs';
 import path from 'path';
 import EventEmitter from 'events';
 import { SubmissionResponse, Question, QuestionType } from './types';
@@ -25,7 +24,6 @@ const sampleResponses: SubmissionResponse[] = mockResponses.responses.map((respo
   };
 });
 vi.mock('https');
-vi.mock('fs');
 
 describe('filloutService', () => {
   describe('applyFiltersToResponses', () => {
@@ -165,6 +163,54 @@ describe('filloutService', () => {
       const matchingQuestion = filteredResponses[0].questions.find(q => q.id === "kc6S6ThWu3cT5PVZkwKUg4");
       expect(matchingQuestion).toBeDefined();
       expect(matchingQuestion?.value).toBe("johnny@fillout.com");
+    });
+  });
+
+  describe('fetchAllFormResponses', () => {
+    const formId = 'test-multi-page-form';
+    const mockApiKey = 'testApiKey';
+    process.env.FILLOUT_API_KEY = mockApiKey;
+
+    beforeEach(() => {
+      vi.resetAllMocks(); // Reset mocks between tests
+    });
+
+    it('aggregates responses from multiple pages correctly', async () => {
+      // Mock two pages of responses
+      const mockPage1 = { responses: [{ id: '1', response: 'Response 1' }], pageCount: 2 };
+      const mockPage2 = { responses: [{ id: '2', response: 'Response 2' }], pageCount: 2 };
+
+      // Simulate successful https response
+      let callCount = 0;
+      const requestMock = vi.fn((url, options, callback) => {
+        callCount++;
+        const response = new EventEmitter();
+        process.nextTick(() => {
+          response.emit('data', JSON.stringify(callCount === 1 ? mockPage1 : mockPage2));
+          response.emit('end');
+        });
+        callback(response);
+        return { on: vi.fn() };
+      });
+      (https.get as Mock).mockImplementation(requestMock);
+
+      const aggregatedResponses = await filloutService.fetchAllFormResponses(formId);
+      expect(aggregatedResponses.length).toBe(2);
+      expect(aggregatedResponses).toEqual([...mockPage1.responses, ...mockPage2.responses]);
+      expect(callCount).toBe(2); // Ensure it was called twice for two pages
+    });
+
+    it('handles errors gracefully', async () => {
+      const requestMock = vi.fn((url, options, callback) => {
+        const req = new EventEmitter();
+        process.nextTick(() => {
+          req.emit('error', new Error('Network error'));
+        });
+        return req;
+      });
+      (https.get as Mock).mockImplementation(requestMock);
+
+      await expect(filloutService.fetchAllFormResponses(formId)).rejects.toThrow('Failed to fetch form responses');
     });
   });
 
