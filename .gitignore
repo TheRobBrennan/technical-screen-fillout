@@ -12,3 +12,6 @@ coverage
 
 # Temporary files
 src/services/fillout/tmp/
+
+# macOS
+.DS_Store

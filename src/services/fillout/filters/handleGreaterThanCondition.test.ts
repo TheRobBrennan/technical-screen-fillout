@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { handleGreaterThanCondition } from './handleGreaterThanCondition';
-import { Question } from "../../types";
+import { Question } from "../types";
 
 describe('handleGreaterThanCondition', () => {
   // Date comparisons
