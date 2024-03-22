@@ -25,7 +25,7 @@ describe('filloutController', () => {
       json: vi.fn(),
       status: vi.fn().mockReturnThis(),
       send: vi.fn().mockReturnThis(),
-      redirect: vi.fn(),
+      redirect: vi.fn().mockReturnThis(),
     };
 
     // Default mock implementations
