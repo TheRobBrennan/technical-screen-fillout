@@ -5,6 +5,7 @@ import { basePath } from '../utils/pathUtils';
 
 import { FilterClauseType, FormResponses, supportedQuestionTypes, ConditionCheck } from './types';
 
+// FUTURE: Add additional filtering as needed
 const conditionChecks: Record<string, ConditionCheck> = {
   /*
   Note: Fillout forms sometimes have things other than question answers in the responses, but you can assume 
