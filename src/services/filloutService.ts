@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { basePath } from '../utils/pathUtils';
 import { handleEqualsCondition } from './fillout/filters/handleEqualsCondition';
+import { handleDoesNotEqualCondition } from './fillout/filters/handleDoesNotEqualCondition';
 
 import { FilterClauseType, FormResponses, supportedQuestionTypes, ConditionCheck } from './types';
 
@@ -14,9 +15,9 @@ const conditionChecks: Record<string, ConditionCheck> = {
   where the values are either string, number, or strings which are ISO dates
   */
   'equals': handleEqualsCondition,
+  'does_not_equal': handleDoesNotEqualCondition,
 
   // TODO: Implement the remaining condition checks
-  // 'does_not_equal': (questionValue, filterValue) => questionValue !== filterValue,
   // 'greater_than': (questionValue, filterValue) => parseFloat(questionValue) > parseFloat(filterValue),
   // 'less_than': (questionValue, filterValue) => parseFloat(questionValue) < parseFloat(filterValue),
 };
@@ -35,6 +36,7 @@ export const applyFiltersToResponses = (responses: FormResponses['responses'], f
 
       // Iterate over each filter to apply it if applicable
       return filters.some(filter => {
+        if (filter.id !== question.id) return false; // Skip if the filter does not apply to the question
         const conditionCheck = conditionChecks[filter.condition as keyof typeof conditionChecks];
 
         if (conditionCheck) {
