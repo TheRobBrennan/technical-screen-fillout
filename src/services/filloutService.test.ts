@@ -350,8 +350,15 @@ describe('filloutService', () => {
     });
 
     it('saves form responses to a file', () => {
-      // Call your function that uses path.join
-      filloutService.saveFormResponsesToFile('test-form', [{ id: '1', answer: 'Yes' }]);
+      // Create an object of type 'FormResponses' with the required properties
+      const formResponses: FormResponses = {
+        responses: sampleResponses,
+        totalResponses: 1,
+        pageCount: 1
+      };
+
+      // Call your function that uses path.join and pass the formResponses object
+      filloutService.saveFormResponsesToFile('test-form', formResponses);
 
       // Now you can check if path.join was called as expected
       expect(joinSpy).toHaveBeenCalled();
