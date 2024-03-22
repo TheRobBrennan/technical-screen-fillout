@@ -13,7 +13,7 @@
   },
   "nodemonConfig": {
     "ignore": [
-      "src/services/tmp/*"
+      "src/services/fillout/tmp/*"
     ]
   },
   "repository": {

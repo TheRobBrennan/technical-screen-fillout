@@ -1,4 +1,4 @@
-import { Question } from "../../types";
+import { Question } from "../types";
 
 export const handleDoesNotEqualCondition = (question: Question, filterValue: string | number): boolean => {
   // If the question value is a date, compare dates

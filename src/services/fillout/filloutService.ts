@@ -1,11 +1,11 @@
 import https from 'https';
 import fs from 'fs';
 import path from 'path';
-import { basePath } from '../utils/pathUtils';
-import { handleEqualsCondition } from './fillout/filters/handleEqualsCondition';
-import { handleDoesNotEqualCondition } from './fillout/filters/handleDoesNotEqualCondition';
-import { handleGreaterThanCondition } from './fillout/filters/handleGreaterThanCondition';
-import { handleLessThanCondition } from './fillout/filters/handleLessThanCondition';
+import { basePath } from '../../utils/pathUtils';
+import { handleEqualsCondition } from './filters/handleEqualsCondition';
+import { handleDoesNotEqualCondition } from './filters/handleDoesNotEqualCondition';
+import { handleGreaterThanCondition } from './filters/handleGreaterThanCondition';
+import { handleLessThanCondition } from './filters/handleLessThanCondition';
 
 import { FilterClauseType, FormResponses, supportedQuestionTypes, ConditionCheck } from './types';
 

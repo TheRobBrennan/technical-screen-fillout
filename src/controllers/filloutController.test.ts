@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
 import { redirectToFilteredResponses, getFilteredResponses } from './filloutController';
-import * as filloutService from '../services/filloutService';
+import * as filloutService from '../services/fillout/filloutService';
 
 // Mock responses
-const mockResponses = await import('../services/mocks/responses.json');
+const mockResponses = await import('../services/fillout/mocks/responses.json');
 
 // Mock the service functions
 vi.mock('../services/filloutService', () => ({
