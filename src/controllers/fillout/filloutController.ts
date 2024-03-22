@@ -24,7 +24,6 @@ export const getFilteredResponses = async (req: Request, res: Response): Promise
   }
 
   try {
-    // const responses = await fetchFormResponses(formId);
     const responses = await fetchAllFormResponses(formId);
 
     // DEBUG
