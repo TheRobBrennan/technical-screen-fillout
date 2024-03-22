@@ -3,6 +3,9 @@ import { Request, Response } from 'express';
 import { redirectToFilteredResponses, getFilteredResponses } from './filloutController';
 import * as filloutService from '../services/filloutService';
 
+// Mock responses
+const mockResponses = await import('../services/mocks/responses.json');
+
 // Mock the service functions
 vi.mock('../services/filloutService', () => ({
   fetchFormResponses: vi.fn(),
@@ -18,13 +21,8 @@ describe('filloutController', () => {
     vi.resetAllMocks(); // Reset mocks to clear previous test effects
 
     // Setup default mock implementations
-    vi.spyOn(filloutService, 'fetchFormResponses').mockResolvedValue({
-      responses: [
-        { submissionId: "1", questions: [{ id: "kc6S6ThWu3cT5PVZkwKUg4", value: "johnny@fillout.com" }] }
-      ],
-      totalResponses: 1,
-      pageCount: 1
-    });
+    vi.spyOn(filloutService, 'fetchFormResponses').mockResolvedValue(mockResponses);
+
     vi.spyOn(filloutService, 'saveFormResponsesToFile').mockImplementation(() => { });
     vi.spyOn(filloutService, 'applyFiltersToResponses').mockImplementation((responses, _) => responses); // Simulate filter application
 
