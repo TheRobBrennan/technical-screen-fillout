@@ -5,7 +5,7 @@ export type FilterClauseType = {
   value: number | string;
 };
 
-export type ConditionCheck = (questionValue: string, filterValue: string) => boolean;
+export type ConditionCheck = (question: Question, filterValue: string) => boolean;
 
 // Define a type for the question types
 export type QuestionType = 'LongAnswer' | 'ShortAnswer' | 'DatePicker' | 'NumberInput' | 'MultipleChoice' | 'EmailInput' | string;

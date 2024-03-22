@@ -2,6 +2,7 @@ import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import { basePath } from '../utils/pathUtils';
+import { handleEqualsCondition } from './fillout/filters/handleEqualsCondition';
 
 import { FilterClauseType, FormResponses, supportedQuestionTypes, ConditionCheck } from './types';
 
@@ -12,9 +13,7 @@ const conditionChecks: Record<string, ConditionCheck> = {
   for this assignment, that the ids to filter by will only ever correspond to form questions, 
   where the values are either string, number, or strings which are ISO dates
   */
-
-  // TODO: Implement equality check for all supported question types
-  'equals': (questionValue, filterValue) => questionValue === filterValue,
+  'equals': handleEqualsCondition,
 
   // TODO: Implement the remaining condition checks
   // 'does_not_equal': (questionValue, filterValue) => questionValue !== filterValue,
@@ -39,7 +38,7 @@ export const applyFiltersToResponses = (responses: FormResponses['responses'], f
         const conditionCheck = conditionChecks[filter.condition as keyof typeof conditionChecks];
 
         if (conditionCheck) {
-          return conditionCheck(question.value as string, filter.value as string);
+          return conditionCheck(question, filter.value as string);
         } else {
           console.warn(`Unrecognized filter condition: ${filter.condition} - question will not be filtered out.`);
           return true; // If condition is unrecognized, do not filter out the response
