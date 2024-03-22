@@ -15,14 +15,9 @@ describe('Fillout API routes', () => {
   });
 
   it('should respond with JSON on GET "/:formId/filteredResponses"', async () => {
-    // Mocking fetchAndSaveFormResponses behavior or setting up the environment to return a predictable response is necessary
     const response = await request(server).get(`/${formId}/filteredResponses`);
     expect(response.status).toBe(200);
-    // Validate the structure of your response here, for example:
     expect(response.body).toEqual(expect.any(Object)); // Adjust based on actual response structure
-    // If you know the structure of responses, validate it explicitly
-    // e.g., expect(response.body).toEqual({ data: expect.any(Array) });
   });
 
-  // Add more tests as needed to cover other scenarios, error handling, etc.
 });
