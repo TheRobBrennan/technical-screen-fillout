@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, Mock } from 'vitest';
 import * as filloutService from './filloutService';
-import { FilterClauseType, FormResponses } from './types';
+import { FormResponses } from './types';
 
 import https from 'https';
 import fs from 'fs';
@@ -191,15 +191,29 @@ describe('filloutService', () => {
       // Reset all mocks
       vi.resetAllMocks();
 
-      // Mock https.get implementation
-      https.get.mockImplementation((url, options, callback) => {
-        const resp = new EventEmitter();
+      // Cast the https get method to vi.Mock and provide a mock implementation
+      (https.get as unknown as Mock).mockImplementation((url, options, callback) => {
+        const mockResponse = new EventEmitter() as any;
+        mockResponse.statusCode = 200;
+        mockResponse.headers = {}; // Add if you need to mock headers
+        mockResponse.on = (event, handler) => {
+          if (event === 'data') {
+            handler(JSON.stringify(mockData));
+          }
+          if (event === 'end') {
+            process.nextTick(handler);
+          }
+        };
+
         process.nextTick(() => {
-          resp.emit('data', JSON.stringify(mockData));
-          resp.emit('end');
+          if (callback) callback(mockResponse);
         });
-        callback(resp);
-        return { on: vi.fn() };
+
+        // Return a mock request object, similar to what https.get would return
+        return {
+          on: vi.fn(),
+          // Mock other methods if necessary
+        } as any;
       });
 
       // Mock fs.writeFileSync to avoid filesystem operations
@@ -223,7 +237,7 @@ describe('filloutService', () => {
 
     it('rejects the promise on a network error', async () => {
       // Mock https.get to simulate a network error
-      https.get.mockImplementation((url, options, callback) => {
+      (https.get as Mock).mockImplementation((url, options, callback) => {
         const req = new EventEmitter();
         process.nextTick(() => {
           req.emit('error', new Error('Network error'));
@@ -242,7 +256,7 @@ describe('filloutService', () => {
 
     it('rejects the promise on JSON parsing error', async () => {
       // Mock https.get to simulate receiving invalid JSON
-      https.get.mockImplementation((url, options, callback) => {
+      (https.get as Mock).mockImplementation((url, options, callback) => {
         const resp = new EventEmitter();
         process.nextTick(() => {
           // Emitting data that will cause a JSON.parse error
@@ -287,7 +301,7 @@ describe('filloutService', () => {
         callback(response);
         return { on: vi.fn() };
       });
-      https.get.mockImplementation(requestMock);
+      (https.get as Mock).mockImplementation(requestMock);
 
       const responses = await filloutService.fetchFormResponses(formId);
       expect(https.get).toHaveBeenCalledWith(
@@ -305,7 +319,7 @@ describe('filloutService', () => {
 
     it('handles JSON parsing error', async () => {
       // Simulate a JSON parsing error by returning invalid JSON
-      https.get.mockImplementation((url, options, callback) => {
+      (https.get as Mock).mockImplementation((url, options, callback) => {
         const response = new EventEmitter();
         process.nextTick(() => {
           response.emit('data', 'Invalid JSON');
@@ -322,7 +336,7 @@ describe('filloutService', () => {
 
     it('handles network errors', async () => {
       // Simulate a network error
-      https.get.mockImplementation((url, options, callback) => {
+      (https.get as Mock).mockImplementation((url, options, callback) => {
         const req = new EventEmitter();
         process.nextTick(() => {
           req.emit('error', new Error('Network error'));
