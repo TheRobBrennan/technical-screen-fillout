@@ -111,39 +111,44 @@ describe('filloutService', () => {
     });
 
     it('ignores unknown filter conditions and logs a warning', () => {
-      const sampleResponses = [
+      // This setup seems correct but ensure it matches the expected data structure
+      const sampleResponses: SubmissionResponse[] = [
         {
           submissionId: "1",
+          submissionTime: "2024-02-27T19:37:08.228Z",
+          lastUpdatedAt: "2024-02-27T19:37:08.228Z",
+          calculations: [],
+          urlParameters: [],
           questions: [
-            { id: "textQuestion", type: "ShortAnswer", value: "Response A" },
-            { id: "numberQuestion", type: "NumberInput", value: "10" }
-          ]
+            { id: "textQuestion", type: "ShortAnswer", value: "Response A", name: "Text Question" },
+            { id: "numberQuestion", type: "NumberInput", value: "10", name: "Number Question" }
+          ],
+          documents: [],
+          quiz: {} // Add the missing 'quiz' property
         },
         {
           submissionId: "2",
+          submissionTime: "2024-02-27T19:37:08.228Z",
+          lastUpdatedAt: "2024-02-27T19:37:08.228Z",
+          calculations: [],
+          urlParameters: [],
           questions: [
-            { id: "textQuestion", type: "ShortAnswer", value: "Response B" },
-            { id: "numberQuestion", type: "NumberInput", value: "20" }
-          ]
+            { id: "textQuestion", type: "ShortAnswer", value: "Response B", name: "Text Question" },
+            { id: "numberQuestion", type: "NumberInput", value: "20", name: "Number Question" }
+          ],
+          documents: [],
+          quiz: {} // Add the missing 'quiz' property
         }
       ];
 
-      // Spy on console.warn to verify it gets called for unknown conditions
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
 
-      // Define a filter with an unknown condition
       const filters = [{ id: "textQuestion", condition: 'unknown_condition', value: "Response A" }];
 
-      // Apply the filter
       const filtered = filloutService.applyFiltersToResponses(sampleResponses, filters);
 
-      // The filtered array should not exclude any responses since the condition is unknown
       expect(filtered.length).toBe(sampleResponses.length);
-
-      // Verify that a warning was logged for the unknown condition
       expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Unrecognized filter condition: unknown_condition - question will not be filtered out.'));
-
-      // Restore the original console.warn function
       consoleWarnSpy.mockRestore();
     });
 

@@ -8,7 +8,10 @@ export const applyFiltersToResponses = (responses: FormResponses['responses'], f
   if (filters.length === 0) return responses; // Return early if no filters are provided
 
   const filteredResponses = responses.filter(response => {
-    return response.questions.some(question => {
+    // Ensure response.questions is always treated as an array
+    const questions = response.questions || [];
+
+    return questions.some(question => {
       if (!supportedQuestionTypes.includes(question.type)) {
         console.warn(`Unrecognized question type: ${question.type} - response will not be filtered out.`);
         return true;
