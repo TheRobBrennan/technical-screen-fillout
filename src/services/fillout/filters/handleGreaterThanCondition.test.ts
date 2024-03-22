@@ -78,7 +78,7 @@ describe('handleGreaterThanCondition', () => {
       id: 'complexQuestion',
       name: 'Unhandled Type',
       type: 'Complex',
-      value: { complex: 'data' }, // Simulating an unhandled type
+      value: null, // Simulating an unhandled type
     };
     const filterValue = 'data'; // As string
     const consoleWarnSpy = vi.spyOn(console, 'warn');

@@ -10,7 +10,7 @@ export const handleGreaterThanCondition = (question: Question, filterValue: stri
 
   // Attempt to parse as numbers for numeric comparison
   const questionNumber = parseFloat(question.value as string);
-  const filterNumber = parseFloat(filterValue);
+  const filterNumber = parseFloat(filterValue as string);
   if (!isNaN(questionNumber) && !isNaN(filterNumber)) {
     return questionNumber > filterNumber;
   }
