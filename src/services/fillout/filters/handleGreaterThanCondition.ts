@@ -1,4 +1,4 @@
-import { Question } from "../../types";
+import { Question } from "../types";
 
 export const handleGreaterThanCondition = (question: Question, filterValue: string | number): boolean => {
   // Direct comparison for dates

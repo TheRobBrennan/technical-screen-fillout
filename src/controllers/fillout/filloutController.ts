@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { applyFiltersToResponses, fetchFormResponses, saveFormResponsesToFile } from '../services/filloutService'; // Assume you have this function implemented
+import { applyFiltersToResponses, fetchFormResponses, saveFormResponsesToFile } from '../../services/fillout/filloutService'; // Assume you have this function implemented
 
 // Redirect to filtered responses
 export const redirectToFilteredResponses = (_: Request, res: Response) => {

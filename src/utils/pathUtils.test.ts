@@ -32,7 +32,7 @@ describe('basePath', () => {
     delete process.env.NODE_ENV;
     delete process.env.VERCEL;
     const { basePath } = await import('./pathUtils');
-    const expectedPath = path.join(__dirname, '../services/tmp');
+    const expectedPath = path.join(__dirname, '../services/fillout/tmp');
     expect(basePath).toBe(expectedPath);
   });
 });
