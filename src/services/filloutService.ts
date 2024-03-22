@@ -5,12 +5,20 @@ import { basePath } from '../utils/pathUtils';
 
 import { FilterClauseType, FormResponses, supportedQuestionTypes, ConditionCheck } from './types';
 
-// Implement a map of condition check functions
 const conditionChecks: Record<string, ConditionCheck> = {
+  /*
+  Note: Fillout forms sometimes have things other than question answers in the responses, but you can assume 
+  for this assignment, that the ids to filter by will only ever correspond to form questions, 
+  where the values are either string, number, or strings which are ISO dates
+  */
+
+  // TODO: Implement equality check for all supported question types
   'equals': (questionValue, filterValue) => questionValue === filterValue,
-  'does_not_equal': (questionValue, filterValue) => questionValue !== filterValue,
-  'greater_than': (questionValue, filterValue) => parseFloat(questionValue) > parseFloat(filterValue),
-  'less_than': (questionValue, filterValue) => parseFloat(questionValue) < parseFloat(filterValue),
+
+  // TODO: Implement the remaining condition checks
+  // 'does_not_equal': (questionValue, filterValue) => questionValue !== filterValue,
+  // 'greater_than': (questionValue, filterValue) => parseFloat(questionValue) > parseFloat(filterValue),
+  // 'less_than': (questionValue, filterValue) => parseFloat(questionValue) < parseFloat(filterValue),
 };
 
 export const applyFiltersToResponses = (responses: FormResponses['responses'], filters: FilterClauseType[]) => {
@@ -27,21 +35,14 @@ export const applyFiltersToResponses = (responses: FormResponses['responses'], f
 
       // Iterate over each filter to apply it if applicable
       return filters.some(filter => {
-        if (filter.id !== question.id) return false; // Skip if the filter does not apply to the question
+        const conditionCheck = conditionChecks[filter.condition as keyof typeof conditionChecks];
 
-        // Iterate over each filter to apply it if applicable
-        return filters.some(filter => {
-          if (filter.id !== question.id) return false; // Skip if the filter does not apply to the question
-
-          const conditionCheck = conditionChecks[filter.condition as keyof typeof conditionChecks]; // Explicitly type the index
-          if (conditionCheck) {
-            return conditionCheck(question.value as string, filter.value as string);
-          } else {
-            console.warn(`Unrecognized filter condition: ${filter.condition} - question will not be filtered out.`);
-            return true; // If condition is unrecognized, do not filter out the response
-          }
-        });
-
+        if (conditionCheck) {
+          return conditionCheck(question.value as string, filter.value as string);
+        } else {
+          console.warn(`Unrecognized filter condition: ${filter.condition} - question will not be filtered out.`);
+          return true; // If condition is unrecognized, do not filter out the response
+        }
       });
     });
   });
