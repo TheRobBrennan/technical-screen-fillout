@@ -3,7 +3,6 @@ import * as filloutService from './filloutService';
 import { FormResponses } from './types';
 
 import https from 'https';
-import fs from 'fs';
 import path from 'path';
 import EventEmitter from 'events';
 import { SubmissionResponse, Question, QuestionType } from './types';
@@ -25,7 +24,6 @@ const sampleResponses: SubmissionResponse[] = mockResponses.responses.map((respo
   };
 });
 vi.mock('https');
-vi.mock('fs');
 
 describe('filloutService', () => {
   describe('applyFiltersToResponses', () => {
@@ -168,114 +166,52 @@ describe('filloutService', () => {
     });
   });
 
-  // Adjusting the test environment to match the expected file path logic
-  describe('fetchAndSaveFormResponses', () => {
-    const formId = 'test-form';
-    const mockData: FormResponses = {
-      responses: [
-        // Your mock response objects structured according to the FormResponses type
-      ],
-      totalResponses: 1,
-      pageCount: 1
-    };
+  describe('fetchAllFormResponses', () => {
+    const formId = 'test-multi-page-form';
+    const mockApiKey = 'testApiKey';
+    process.env.FILLOUT_API_KEY = mockApiKey;
 
     beforeEach(() => {
-      process.env.FILLOUT_API_KEY = 'testApiKey';
+      vi.resetAllMocks(); // Reset mocks between tests
+    });
 
-      // Set or unset environment variables to match the expected environment for the file path
-      // For example, to match "src/services/tmp/data-test-form.json", ensure neither VERCEL nor NODE_ENV is set to 'production'
-      delete process.env.VERCEL;
-      process.env.NODE_ENV = 'test'; // Ensure it does not equal 'production'
+    it('aggregates responses from multiple pages correctly', async () => {
+      // Mock two pages of responses
+      const mockPage1 = { responses: [{ id: '1', response: 'Response 1' }], pageCount: 2 };
+      const mockPage2 = { responses: [{ id: '2', response: 'Response 2' }], pageCount: 2 };
 
-      // Reset all mocks
-      vi.resetAllMocks();
-
-      // Cast the https get method to vi.Mock and provide a mock implementation
-      (https.get as unknown as Mock).mockImplementation((url, options, callback) => {
-        const mockResponse = new EventEmitter() as any;
-        mockResponse.statusCode = 200;
-        mockResponse.headers = {}; // Add if you need to mock headers
-        mockResponse.on = (event, handler) => {
-          if (event === 'data') {
-            handler(JSON.stringify(mockData));
-          }
-          if (event === 'end') {
-            process.nextTick(handler);
-          }
-        };
-
+      // Simulate successful https response
+      let callCount = 0;
+      const requestMock = vi.fn((url, options, callback) => {
+        callCount++;
+        const response = new EventEmitter();
         process.nextTick(() => {
-          if (callback) callback(mockResponse);
+          response.emit('data', JSON.stringify(callCount === 1 ? mockPage1 : mockPage2));
+          response.emit('end');
         });
-
-        // Return a mock request object, similar to what https.get would return
-        return {
-          on: vi.fn(),
-          // Mock other methods if necessary
-        } as any;
+        callback(response);
+        return { on: vi.fn() };
       });
+      (https.get as Mock).mockImplementation(requestMock);
 
-      // Mock fs.writeFileSync to avoid filesystem operations
-      vi.spyOn(fs, 'writeFileSync').mockImplementation(() => { });
-
-      // Adjust the expected file path based on the logic your service uses to compute it
-      const expectedFilePath = 'src/services/tmp/data-test-form.json';
-      vi.spyOn(path, 'join').mockReturnValue(expectedFilePath);
+      const aggregatedResponses = await filloutService.fetchAllFormResponses(formId);
+      expect(aggregatedResponses.length).toBe(2);
+      expect(aggregatedResponses).toEqual([...mockPage1.responses, ...mockPage2.responses]);
+      expect(callCount).toBe(2); // Ensure it was called twice for two pages
     });
 
-    it('successfully fetches and saves form responses', async () => {
-      await expect(filloutService.fetchAndSaveFormResponses(formId)).resolves.toEqual(mockData);
-
-      const expectedFilePath = 'src/services/tmp/data-test-form.json'; // Ensure this matches your service logic or beforeEach mock
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
-        expectedFilePath,
-        JSON.stringify(mockData, null, 2),
-        'utf-8'
-      );
-    });
-
-    it('rejects the promise on a network error', async () => {
-      // Mock https.get to simulate a network error
-      (https.get as Mock).mockImplementation((url, options, callback) => {
+    it('handles errors gracefully', async () => {
+      const requestMock = vi.fn((url, options, callback) => {
         const req = new EventEmitter();
         process.nextTick(() => {
           req.emit('error', new Error('Network error'));
         });
         return req;
       });
+      (https.get as Mock).mockImplementation(requestMock);
 
-      // Assert that the promise is rejected with the expected error
-      await expect(filloutService.fetchAndSaveFormResponses(formId)).rejects.toThrow('Network error');
-
-      // Optionally, verify that no file was attempted to be written
-      // This requires mocking fs.writeFileSync and ensuring it was not called
-      vi.spyOn(fs, 'writeFileSync').mockImplementation(() => { });
-      expect(fs.writeFileSync).not.toHaveBeenCalled();
+      await expect(filloutService.fetchAllFormResponses(formId)).rejects.toThrow('Failed to fetch form responses');
     });
-
-    it('rejects the promise on JSON parsing error', async () => {
-      // Mock https.get to simulate receiving invalid JSON
-      (https.get as Mock).mockImplementation((url, options, callback) => {
-        const resp = new EventEmitter();
-        process.nextTick(() => {
-          // Emitting data that will cause a JSON.parse error
-          resp.emit('data', 'Invalid JSON Data');
-          resp.emit('end');
-        });
-        callback(resp);
-        return { on: vi.fn() };
-      });
-
-      // Assert that the promise is rejected due to a JSON parsing error
-      await expect(filloutService.fetchAndSaveFormResponses(formId))
-        .rejects
-        .toThrow(SyntaxError);
-
-      // Optionally, verify that no attempt was made to write the file
-      // This check ensures that the function stops execution after the error
-      expect(fs.writeFileSync).not.toHaveBeenCalled();
-    });
-
   });
 
   describe('fetchFormResponses', () => {
